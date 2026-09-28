@@ -1,0 +1,81 @@
+// Prisma schema for KINETIX Chemistry Learning Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./kinetix.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("STUDENT") // "STUDENT" | "TEACHER"
+  school    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  results   StudentResult[]
+}
+
+model Lesson {
+  id          String   @id @default(uuid())
+  orderNumber Int      @unique // 1 to 6
+  slug        String   @unique
+  title       String
+  subtitle    String
+  description String
+  duration    String   @default("45 Menit")
+  objectives  String   // JSON array of strings
+  content     String   // JSON structured content blocks
+  hasSimulation Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions   Question[]
+  experiments Experiment[]
+  results     StudentResult[]
+}
+
+model Experiment {
+  id          String   @id @default(uuid())
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type        String   // "CONCENTRATION_TIME" | "COLLISION_THEORY" | "ACTIVATION_ENERGY" | "FACTORS_REACTION" | "RATE_LAW" | "INDUSTRIAL_KINETICS"
+  title       String
+  description String
+  parameters  String   // JSON config for default variables and bounds
+  createdAt   DateTime @default(now())
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  lessonId      String
+  lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type          String   @default("MULTIPLE_CHOICE") // "MULTIPLE_CHOICE" | "FILL_BLANK"
+  questionText  String
+  options       String?  // JSON array for multiple choice: ["A. ...", "B. ...", ...]
+  correctAnswer String   // Choice letter "A"/"B"/"C"/"D" or keyword for fill-blank
+  explanation   String?
+  orderIndex    Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+model StudentResult {
+  id           String   @id @default(uuid())
+  studentId    String
+  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  score        Float    // 0 - 100
+  mcAnswers    String   // JSON map { questionId: selectedOption }
+  fillAnswers  String   // JSON map { blankId: studentText }
+  feedback     String?
+  completedAt  DateTime @default(now())
+
+  @@unique([studentId, lessonId])
+}
