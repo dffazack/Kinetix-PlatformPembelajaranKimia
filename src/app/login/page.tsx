@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Shield, User, Lock, Mail, School, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, User, Lock, Mail, School, ArrowRight, CheckCircle2, AlertCircle, GraduationCap, BookOpen, UserCheck, HelpCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,11 +97,10 @@ export default function LoginPage() {
               setActiveRoleTab('student');
               setErrorMsg('');
             }}
-            className={`py-3 flex items-center justify-center gap-2 transition-all ${
-              activeRoleTab === 'student'
-                ? 'bg-cream text-charcoal-900 border-b-4 border-teal font-extrabold'
-                : 'bg-cream-dark text-charcoal-600 hover:text-charcoal-900'
-            }`}
+            className={`py-3 flex items-center justify-center gap-2 transition-all ${activeRoleTab === 'student'
+              ? 'bg-cream text-charcoal-900 border-b-4 border-teal font-extrabold'
+              : 'bg-cream-dark text-charcoal-600 hover:text-charcoal-900'
+              }`}
           >
             <User className="w-4 h-4 text-teal" />
             Portal Siswa
@@ -111,11 +111,10 @@ export default function LoginPage() {
               setActiveRoleTab('teacher');
               setErrorMsg('');
             }}
-            className={`py-3 flex items-center justify-center gap-2 transition-all ${
-              activeRoleTab === 'teacher'
-                ? 'bg-cream text-charcoal-900 border-b-4 border-pink font-extrabold'
-                : 'bg-cream-dark text-charcoal-600 hover:text-charcoal-900'
-            }`}
+            className={`py-3 flex items-center justify-center gap-2 transition-all ${activeRoleTab === 'teacher'
+              ? 'bg-cream text-charcoal-900 border-b-4 border-pink font-extrabold'
+              : 'bg-cream-dark text-charcoal-600 hover:text-charcoal-900'
+              }`}
           >
             <Shield className="w-4 h-4 text-pink-hover" />
             Portal Guru Pengampu
@@ -144,22 +143,20 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setStudentMode('login')}
-                  className={`px-4 py-1.5 text-xs font-mono font-bold border-2 transition-all ${
-                    studentMode === 'login'
-                      ? 'bg-teal text-white border-teal-dark'
-                      : 'bg-cream text-charcoal-700 border-charcoal-300'
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-mono font-bold border-2 transition-all ${studentMode === 'login'
+                    ? 'bg-teal text-white border-teal-dark'
+                    : 'bg-cream text-charcoal-700 border-charcoal-300'
+                    }`}
                 >
                   Masuk (Login)
                 </button>
                 <button
                   type="button"
                   onClick={() => setStudentMode('register')}
-                  className={`px-4 py-1.5 text-xs font-mono font-bold border-2 transition-all ${
-                    studentMode === 'register'
-                      ? 'bg-teal text-white border-teal-dark'
-                      : 'bg-cream text-charcoal-700 border-charcoal-300'
-                  }`}
+                  className={`px-4 py-1.5 text-xs font-mono font-bold border-2 transition-all ${studentMode === 'register'
+                    ? 'bg-teal text-white border-teal-dark'
+                    : 'bg-cream text-charcoal-700 border-charcoal-300'
+                    }`}
                 >
                   Daftar Akun Baru
                 </button>
@@ -290,11 +287,45 @@ export default function LoginPage() {
                   }}
                   className="w-full bg-cream border border-charcoal-900 text-charcoal-900 p-2 text-xs font-mono font-bold hover:bg-pink hover:text-charcoal-900 transition-colors flex items-center justify-center gap-1.5"
                 >
-                  ⚡ Akses Instan Guru Demo (Dra. Siti Rahmawati)
+                  ⚡ Akses Instan Guru Demo
                 </button>
               </div>
             </div>
           )}
+        </div>
+
+        {/* Tombol Panduan Siswa, Panduan Guru, & Profil Pengajar */}
+        <div className="bg-cream border-t-2 border-teal-dark p-4">
+          <div className="text-center mb-2.5">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-charcoal-600">
+              📖 Buku Petunjuk & Panduan Platform:
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono text-[11px] sm:text-xs">
+            <Link
+              href="/guide?role=student"
+              className="bg-cream-card border-2 border-teal text-teal-dark hover:bg-teal hover:text-white p-2.5 text-center font-bold transition-all shadow-brutal-dark flex items-center justify-center gap-1.5"
+            >
+              <GraduationCap className="w-4 h-4 text-teal shrink-0" />
+              <span>Panduan Siswa</span>
+            </Link>
+
+            <Link
+              href="/guide?role=teacher"
+              className="bg-cream-card border-2 border-charcoal-900 text-charcoal-900 hover:bg-pink hover:text-charcoal-900 p-2.5 text-center font-bold transition-all shadow-brutal-dark flex items-center justify-center gap-1.5"
+            >
+              <Shield className="w-4 h-4 text-charcoal-900 shrink-0" />
+              <span>Panduan Guru</span>
+            </Link>
+
+            <Link
+              href="/guide?role=profile"
+              className="bg-cream-card border-2 border-teal-deep text-charcoal-900 hover:bg-charcoal-900 hover:text-cream p-2.5 text-center font-bold transition-all shadow-brutal-dark flex items-center justify-center gap-1.5"
+            >
+              <UserCheck className="w-4 h-4 text-teal shrink-0" />
+              <span>Profil Pengajar</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

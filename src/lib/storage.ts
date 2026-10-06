@@ -5,10 +5,10 @@ import { INITIAL_LESSONS, QUESTIONS_BANK } from './data/lessonsData';
 export const SEED_USERS: User[] = [
   {
     id: 'teacher-1',
-    email: 'guru@kinetix.id',
-    name: 'Dra. Siti Rahmawati, M.Pd.',
+    email: 'friska.farah@kinetix.id',
+    name: 'Friska Farah Faridah',
     role: 'TEACHER',
-    school: 'SMA Negeri 1 Sains Kimia',
+    school: 'S1 Pendidikan Kimia (NIM: 240331605527)',
     avatar: '👩‍🏫',
   },
   {

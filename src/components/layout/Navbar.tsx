@@ -4,11 +4,16 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Atom, BookOpen, FlaskConical, BarChart3, UserCheck, Shield, LogOut, ArrowRightLeft } from 'lucide-react';
+import { Atom, BookOpen, FlaskConical, BarChart3, UserCheck, Shield, LogOut, ArrowRightLeft, HelpCircle } from 'lucide-react';
 
 export default function Navbar() {
   const { user, switchDemoRole, logout } = useAuth();
   const pathname = usePathname();
+
+  // Sembunyikan navbar khusus di halaman login
+  if (pathname === '/login') {
+    return null;
+  }
 
   const isTeacher = user?.role === 'TEACHER';
 
@@ -26,7 +31,7 @@ export default function Navbar() {
                 KINETIX<span className="text-pink">.</span>
               </span>
               <span className="hidden sm:block text-[9px] font-mono tracking-widest text-teal-light uppercase -mt-1">
-                Kinetika Kimia Interaktif
+                Exploring Kinetics, Mastering Reaction
               </span>
             </div>
           </Link>
@@ -55,6 +60,18 @@ export default function Navbar() {
             >
               <FlaskConical className="w-3.5 h-3.5" />
               Laboratorium Virtual
+            </Link>
+
+            <Link
+              href="/guide"
+              className={`px-3 py-2 border-2 transition-all flex items-center gap-1.5 ${
+                pathname.startsWith('/guide')
+                  ? 'bg-cream text-charcoal-900 border-charcoal-900 shadow-brutal-pink-sm'
+                  : 'text-cream border-transparent hover:border-pink hover:text-pink'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              Panduan
             </Link>
 
             {isTeacher ? (
