@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
-import { Atom, BookOpen, FlaskConical, Award, ArrowRight, CheckCircle2, Shield, Sparkles, Activity, Layers } from 'lucide-react';
+import { Atom, BookOpen, FlaskConical, Award, ArrowRight, CheckCircle2, Shield, Sparkles, Activity, Layers, LogIn } from 'lucide-react';
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -34,14 +34,14 @@ export default function HomePage() {
           </h1>
 
           <p className="text-base sm:text-lg text-charcoal-700 leading-relaxed font-sans font-normal">
-            Kuasai konsep kinetika kimia secara mendalam melalui <strong>6 Modul Kegiatan Belajar (KB 1 - KB 6)</strong>, laboratorium simulasi partikel mikroskopis 2D, analisis data eksperimen riil, dan asesmen otomatis terpadu.
+            Kuasai konsep kinetika kimia secara mendalam melalui <strong>5 Pertemuan Kegiatan Belajar (KB 1 - KB 5)</strong> berbasis <em>Problem-Based Learning</em> & <em>Deep Learning</em> (Submikroskopik, Makroskopik, Simbolik), laboratorium simulasi 2D, serta asesmen Pre-test, Post-test HOTS, dan Jurnal Refleksi.
           </p>
 
           {/* Call to action buttons */}
           <div className="flex flex-wrap items-center gap-4 pt-2">
             <Link href="/modules" className="kinetix-btn-primary text-sm py-3 px-6 shadow-brutal-dark">
               <BookOpen className="w-4 h-4" />
-              JELAJAHI MODUL (KB 1 - 6)
+              JELAJAHI PERTEMUAN (KB 1 - 5)
             </Link>
 
             <Link href="/experiments" className="kinetix-btn-pink text-sm py-3 px-6 shadow-brutal-dark">
@@ -54,29 +54,34 @@ export default function HomePage() {
                 <Shield className="w-4 h-4 text-teal" />
                 PANEL REKAP NILAI GURU
               </Link>
-            ) : (
+            ) : user ? (
               <Link href="/student/dashboard" className="kinetix-btn-secondary text-sm py-3 px-6">
                 <Award className="w-4 h-4 text-teal" />
                 STATUS PROGRES SAYA
+              </Link>
+            ) : (
+              <Link href="/login" className="kinetix-btn-secondary text-sm py-3 px-6">
+                <LogIn className="w-4 h-4 text-teal" />
+                MASUK / LOGIN AKUN
               </Link>
             )}
           </div>
         </div>
       </section>
 
-      {/* 6 Kegiatan Belajar (KB 1 - 6) Showcase Cards */}
+      {/* 5 Kegiatan Belajar (KB 1 - 5) Showcase Cards */}
       <section className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b-3 border-teal-dark pb-3">
           <div>
             <span className="text-xs font-mono font-bold uppercase text-teal-dark tracking-wider block">
-              Kurikulum Lengkap Kinetika Kimia
+              Kurikulum Kinetika Kimia (PBL & Deep Learning)
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-wide text-charcoal-900">
-              6 Kegiatan Belajar (KB) Terstruktur
+              5 Pertemuan Pembelajaran Terstruktur
             </h2>
           </div>
           <Link href="/modules" className="font-mono text-xs font-bold text-teal-dark hover:text-pink flex items-center gap-1 uppercase">
-            Lihat Semua Modul <ArrowRight className="w-4 h-4" />
+            Lihat Semua Pertemuan <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

@@ -4,19 +4,22 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
-import { BookOpen, CheckCircle2, Clock, Award, ArrowRight, FlaskConical, BarChart3, User, Sparkles } from 'lucide-react';
+import { BookOpen, CheckCircle2, Clock, Award, ArrowRight, FlaskConical, BarChart3, User, Sparkles, TrendingUp } from 'lucide-react';
 
 export default function StudentDashboardPage() {
   const { user } = useAuth();
   const { lessons, results } = useData();
 
-  const studentResults = user ? results.filter(r => r.studentId === user.id) : [];
-  const completedCount = studentResults.length;
+  const studentResults = user ? results.filter((r) => r.studentId === user.id) : [];
+  const completedCount = studentResults.filter((r) => r.stagesCompleted?.includes('POST_TEST')).length;
   const totalModules = lessons.length;
   const completionPercent = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
 
-  const totalScore = studentResults.reduce((acc, curr) => acc + curr.score, 0);
-  const avgScore = completedCount > 0 ? Math.round(totalScore / completedCount) : 0;
+  const totalPostScore = studentResults.reduce((acc, curr) => acc + (curr.postTestScore ?? curr.score ?? 0), 0);
+  const avgPostScore = completedCount > 0 ? Math.round(totalPostScore / completedCount) : 0;
+
+  const totalGain = studentResults.reduce((acc, curr) => acc + (curr.nGain ?? 0), 0);
+  const avgGain = completedCount > 0 ? Math.round((totalGain / completedCount) * 100) / 100 : 0;
 
   return (
     <div className="space-y-8">
@@ -29,7 +32,7 @@ export default function StudentDashboardPage() {
             </div>
             <div>
               <span className="text-[10px] font-mono uppercase bg-pink text-charcoal-900 px-2 py-0.5 font-bold tracking-wider inline-block">
-                Portal Siswa KINETIX
+                Portal Siswa KINETIX • Pendekatan Deep Learning
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-charcoal-900 mt-1">
                 Halo, {user?.name || 'Siswa Kinetix'}!
@@ -43,7 +46,7 @@ export default function StudentDashboardPage() {
           <div className="flex items-center gap-3 font-mono text-xs">
             <Link href="/modules" className="kinetix-btn-primary py-2.5 px-4 text-xs">
               <BookOpen className="w-4 h-4" />
-              Lanjutkan Belajar
+              Lanjutkan Belajar Pertemuan
             </Link>
           </div>
         </div>
@@ -53,11 +56,11 @@ export default function StudentDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div className="bg-cream-card border-2 border-charcoal-900 p-5 kinetix-shadow-sm space-y-2">
           <div className="text-[10px] font-mono uppercase text-charcoal-500 font-bold">
-            Progres Belajar Kinetika
+            Progres Pertemuan Kinetika
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-3xl font-mono font-extrabold text-charcoal-900">
-              {completedCount} <span className="text-sm font-normal text-charcoal-500">/ {totalModules} KB</span>
+              {completedCount} <span className="text-sm font-normal text-charcoal-500">/ {totalModules} Pertemuan</span>
             </div>
             <div className="text-sm font-mono font-bold text-teal-dark">{completionPercent}%</div>
           </div>
@@ -72,25 +75,26 @@ export default function StudentDashboardPage() {
 
         <div className="bg-teal/15 border-2 border-teal p-5 kinetix-shadow-sm space-y-1">
           <div className="text-[10px] font-mono uppercase text-teal-deep font-bold">
-            Rata-Rata Nilai Evaluasi
+            Rata-Rata Nilai Post-Test
           </div>
           <div className="text-3xl font-mono font-extrabold text-teal-deep">
-            {avgScore} <span className="text-sm font-normal text-teal-dark">/ 100</span>
+            {avgPostScore} <span className="text-sm font-normal text-teal-dark">/ 100</span>
           </div>
           <p className="text-[11px] font-mono text-teal-dark">
-            {avgScore >= 75 ? '✅ Telah melampaui KKM (75)' : '⚠️ Terus berlatih untuk mencapai KKM'}
+            {avgPostScore >= 75 ? '✅ Telah melampaui KKM (75)' : '⚠️ Terus tingkatkan pada level submikroskopik'}
           </p>
         </div>
 
         <div className="bg-pink/20 border-2 border-pink p-5 kinetix-shadow-sm space-y-1">
-          <div className="text-[10px] font-mono uppercase text-charcoal-900 font-bold">
-            Status Kelulusan Modul
+          <div className="text-[10px] font-mono uppercase text-charcoal-900 font-bold flex items-center gap-1">
+            <TrendingUp className="w-4 h-4 text-pink-hover" />
+            Rata-Rata N-Gain Score
           </div>
           <div className="text-3xl font-mono font-extrabold text-pink-hover">
-            {completedCount === totalModules ? 'KOMPLET' : `${totalModules - completedCount} TERSISA`}
+            {avgGain}
           </div>
           <p className="text-[11px] font-mono text-charcoal-700">
-            Selesaikan seluruh KB untuk sertifikasi kompetensi.
+            Peningkatan efektivitas pemahaman konsep kimia
           </p>
         </div>
       </div>
@@ -99,15 +103,16 @@ export default function StudentDashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b-2 border-teal-dark pb-2">
           <h2 className="text-xl font-bold uppercase tracking-wide text-charcoal-900 font-mono">
-            Rencana Belajar: Kegiatan Belajar (KB 1 — KB 6)
+            Rencana Belajar: Pertemuan 1 — 5 (KB 1 — KB 5)
           </h2>
           <span className="text-xs font-mono text-charcoal-600">Klik untuk masuk modul</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {lessons.map(lesson => {
-            const result = studentResults.find(r => r.lessonId === lesson.id);
-            const isCompleted = !!result;
+          {lessons.map((lesson) => {
+            const result = studentResults.find((r) => r.lessonId === lesson.id);
+            const stages = result?.stagesCompleted || [];
+            const isCompleted = stages.includes('POST_TEST');
 
             return (
               <div
@@ -117,11 +122,23 @@ export default function StudentDashboardPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold bg-teal text-white px-2 py-0.5 uppercase">
-                      KB {lesson.orderNumber}
+                      Pertemuan {lesson.orderNumber}
                     </span>
                     {isCompleted ? (
-                      <span className="inline-flex items-center gap-1 font-mono text-xs font-bold text-teal-deep bg-teal/20 px-2 py-0.5 border border-teal">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Nilai: {result.score}/100
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-charcoal-700 bg-cream px-2 py-0.5 border border-charcoal-400">
+                          Pre: {result?.preTestScore}%
+                        </span>
+                        <span className="font-mono text-xs font-bold text-teal-deep bg-teal/20 px-2 py-0.5 border border-teal">
+                          Post: {result?.postTestScore}%
+                        </span>
+                        <span className="font-mono text-xs font-bold text-charcoal-900 bg-pink px-2 py-0.5 border border-charcoal-900">
+                          N-Gain: {result?.nGain}
+                        </span>
+                      </div>
+                    ) : stages.includes('PRE_TEST') ? (
+                      <span className="font-mono text-xs text-charcoal-700 bg-amber-100 border border-amber-600 px-2 py-0.5">
+                        Pre-test Selesai ({result?.preTestScore}%)
                       </span>
                     ) : (
                       <span className="font-mono text-xs text-charcoal-500 bg-cream-dark px-2 py-0.5 border border-charcoal-400">
@@ -143,14 +160,14 @@ export default function StudentDashboardPage() {
                     href={`/experiments?type=${lesson.simulationType}`}
                     className="font-mono text-xs font-bold text-teal-dark hover:text-pink flex items-center gap-1"
                   >
-                    <FlaskConical className="w-3.5 h-3.5" /> Lab Terkait
+                    <FlaskConical className="w-3.5 h-3.5" /> Virtual Lab
                   </Link>
 
                   <Link
                     href={`/modules/${lesson.id}`}
                     className="kinetix-btn-primary text-xs py-1.5 px-3"
                   >
-                    {isCompleted ? 'Pelajari Ulang' : 'Mulai Belajar'} →
+                    {isCompleted ? 'Pelajari Ulang' : 'Masuk Belajar'} →
                   </Link>
                 </div>
               </div>

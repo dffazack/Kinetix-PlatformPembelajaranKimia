@@ -1,4 +1,5 @@
 // Prisma schema for KINETIX Chemistry Learning Platform
+// Aligned with Deep Learning & Problem-Based Learning (PBL) Specification
 
 generator client {
   provider = "prisma-client-js"
@@ -13,9 +14,10 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String
-  password  String
+  password  String   @default("password123")
   role      String   @default("STUDENT") // "STUDENT" | "TEACHER"
   school    String?
+  avatar    String?  @default("👨‍🎓")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -23,18 +25,22 @@ model User {
 }
 
 model Lesson {
-  id          String   @id @default(uuid())
-  orderNumber Int      @unique // 1 to 6
-  slug        String   @unique
-  title       String
-  subtitle    String
-  description String
-  duration    String   @default("45 Menit")
-  objectives  String   // JSON array of strings
-  content     String   // JSON structured content blocks
-  hasSimulation Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(uuid())
+  orderNumber       Int      @unique // 1 to 5 (Pertemuan 1 - 5)
+  slug              String   @unique
+  title             String
+  subtitle          String
+  description       String
+  duration          String   @default("90 Menit")
+  videoUrl          String?
+  objectives        String   // JSON array of strings
+  pblProblem        String?  // Orientasi Masalah PBL
+  content           String   // JSON structured content blocks
+  hasSimulation     Boolean  @default(true)
+  simulationType    String   @default("COLLISION_THEORY") // "COLLISION_THEORY" | "FACTORS_REACTION" | "ACTIVATION_ENERGY" | "RATE_LAW" | "INDUSTRIAL_KINETICS" | "CONCENTRATION_TIME"
+  reflectionPrompts String?  // JSON array of reflection questions
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   questions   Question[]
   experiments Experiment[]
@@ -45,7 +51,7 @@ model Experiment {
   id          String   @id @default(uuid())
   lessonId    String
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  type        String   // "CONCENTRATION_TIME" | "COLLISION_THEORY" | "ACTIVATION_ENERGY" | "FACTORS_REACTION" | "RATE_LAW" | "INDUSTRIAL_KINETICS"
+  type        String   // "COLLISION_THEORY" | "FACTORS_REACTION" | "ACTIVATION_ENERGY" | "RATE_LAW" | "INDUSTRIAL_KINETICS"
   title       String
   description String
   parameters  String   // JSON config for default variables and bounds
@@ -56,26 +62,36 @@ model Question {
   id            String   @id @default(uuid())
   lessonId      String
   lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  type          String   @default("MULTIPLE_CHOICE") // "MULTIPLE_CHOICE" | "FILL_BLANK"
+  testType      String   @default("POST_TEST") // "PRE_TEST" | "POST_TEST"
+  category      String?  // "DIAGNOSTIC" | "MISCONCEPTION" | "SYMBOLIC" | "VISUAL" | "HOTS" | "SUBMICROSCOPIC" | "APPLICATION"
+  type          String   @default("MULTIPLE_CHOICE") // "MULTIPLE_CHOICE" | "FILL_BLANK" | "ESSAY"
   questionText  String
   options       String?  // JSON array for multiple choice: ["A. ...", "B. ...", ...]
-  correctAnswer String   // Choice letter "A"/"B"/"C"/"D" or keyword for fill-blank
-  explanation   String?
+  correctAnswer String   // Choice letter "A"/"B"/"C"/"D" or keyword for fill-blank/essay
+  explanation   String?  // Kunci jawaban & pembahasan komprehensif
   orderIndex    Int      @default(0)
   createdAt     DateTime @default(now())
 }
 
 model StudentResult {
-  id           String   @id @default(uuid())
-  studentId    String
-  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  lessonId     String
-  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  score        Float    // 0 - 100
-  mcAnswers    String   // JSON map { questionId: selectedOption }
-  fillAnswers  String   // JSON map { blankId: studentText }
-  feedback     String?
-  completedAt  DateTime @default(now())
+  id                String   @id @default(uuid())
+  studentId         String
+  student           User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lessonId          String
+  lesson            Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  preTestScore      Float?   @default(0)
+  postTestScore     Float?   @default(0)
+  nGain             Float?   @default(0) // (Post - Pre) / (100 - Pre)
+  score             Float    @default(0) // General score for backward compatibility (Post score)
+  preAnswers        String?  // JSON map { questionId: selectedOption }
+  postAnswers       String?  // JSON map { questionId: selectedOption }
+  mcAnswers         String?  // Backward compatibility
+  fillAnswers       String?  // Backward compatibility
+  reflectionAnswers String?  // JSON map { promptIndex: studentAnswerText }
+  stagesCompleted   String?  // JSON array e.g. ["PRE_TEST", "ORIENTATION", "SIMULATION", "POST_TEST", "REFLECTION"]
+  feedback          String?
+  completedAt       DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([studentId, lessonId])
 }

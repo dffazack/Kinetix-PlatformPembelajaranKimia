@@ -4,30 +4,46 @@ import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
-import { Question } from '@/lib/types';
-import { CheckCircle2, XCircle, ArrowRight, ArrowLeft, Send, Award, RefreshCw, BookOpen } from 'lucide-react';
+import { Question, QuestionTestType } from '@/lib/types';
+import { CheckCircle2, XCircle, ArrowRight, ArrowLeft, Send, Award, HelpCircle, Check, Sparkles, TrendingUp } from 'lucide-react';
 
 interface EvaluationQuizProps {
   lessonId: string;
   lessonTitle: string;
-  onClose?: () => void;
+  testType: QuestionTestType; // 'PRE_TEST' | 'POST_TEST'
+  onSuccess?: () => void;
 }
 
-export default function EvaluationQuiz({ lessonId, lessonTitle, onClose }: EvaluationQuizProps) {
+export default function EvaluationQuiz({ lessonId, lessonTitle, testType, onSuccess }: EvaluationQuizProps) {
   const { user } = useAuth();
-  const { getQuestionsForLesson, submitEvaluation, getStudentResultForLesson } = useData();
+  const {
+    getQuestionsForLesson,
+    submitPreTest,
+    submitPostTest,
+    getStudentResultForLesson
+  } = useData();
 
-  const questions: Question[] = getQuestionsForLesson(lessonId);
+  const questions: Question[] = getQuestionsForLesson(lessonId, testType);
   const existingResult = user ? getStudentResultForLesson(user.id, lessonId) : undefined;
 
+  const isPreTest = testType === 'PRE_TEST';
+  const initialAnswers = isPreTest
+    ? existingResult?.preAnswers || {}
+    : existingResult?.postAnswers || {};
+
+  const alreadySubmitted = isPreTest
+    ? (existingResult?.stagesCompleted?.includes('PRE_TEST') ?? false)
+    : (existingResult?.stagesCompleted?.includes('POST_TEST') ?? false);
+
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(
-    existingResult?.mcAnswers || {}
-  );
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(!!existingResult);
-  const [scoreResult, setScoreResult] = useState<{ score: number; correctCount: number; total: number; feedback?: string } | null>(
-    existingResult
-      ? { score: existingResult.score, correctCount: existingResult.correctCount, total: existingResult.totalQuestions, feedback: existingResult.feedback }
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>(initialAnswers);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(alreadySubmitted);
+  const [scoreData, setScoreData] = useState<{ score: number; nGain?: number } | null>(
+    alreadySubmitted
+      ? {
+          score: isPreTest ? existingResult?.preTestScore ?? 0 : existingResult?.postTestScore ?? 0,
+          nGain: isPreTest ? undefined : existingResult?.nGain,
+        }
       : null
   );
 
@@ -37,256 +53,271 @@ export default function EvaluationQuiz({ lessonId, lessonTitle, onClose }: Evalu
 
   const handleSelectOption = (questionId: string, optionLetter: string) => {
     if (isSubmitted) return;
-    setSelectedAnswers(prev => ({
+    setSelectedAnswers((prev) => ({
       ...prev,
       [questionId]: optionLetter,
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!user) {
-      alert('Silakan login terlebih dahulu untuk menyimpan nilai evaluasi!');
+      alert('Silakan login terlebih dahulu untuk menyimpan hasil asesmen Anda!');
       return;
     }
 
-    const res = submitEvaluation(
-      user.id,
-      user.name,
-      user.email,
-      lessonId,
-      selectedAnswers,
-      {}
-    );
-
-    setScoreResult({
-      score: res.score,
-      correctCount: res.correctCount,
-      total: res.total,
-      feedback: res.result.feedback,
-    });
-    setIsSubmitted(true);
-
-    if (res.score >= 70) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#008080', '#FF69B4', '#FFFDD0'],
-      });
+    if (answeredCount < total) {
+      const confirmIncomplete = confirm(
+        `Anda baru menjawab ${answeredCount} dari ${total} soal. Yakin ingin mengirim jawaban sekarang?`
+      );
+      if (!confirmIncomplete) return;
     }
-  };
 
-  const handleRetake = () => {
-    setIsSubmitted(false);
-    setSelectedAnswers({});
-    setCurrentIndex(0);
-    setScoreResult(null);
+    if (isPreTest) {
+      const res = await submitPreTest(user.id, user.name, user.email, lessonId, selectedAnswers);
+      setScoreData({ score: res.score });
+      setIsSubmitted(true);
+      if (onSuccess) onSuccess();
+    } else {
+      const res = await submitPostTest(user.id, user.name, user.email, lessonId, selectedAnswers);
+      setScoreData({ score: res.score, nGain: res.nGain });
+      setIsSubmitted(true);
+
+      if (res.score >= 70) {
+        confetti({
+          particleCount: 90,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#008080', '#FF69B4', '#FFFDD0'],
+        });
+      }
+      if (onSuccess) onSuccess();
+    }
   };
 
   if (!currentQ && total === 0) {
     return (
       <div className="bg-cream-card border-2 border-teal p-8 text-center font-mono">
-        <p>Soal evaluasi untuk modul ini belum dimuat.</p>
+        <p>Soal {isPreTest ? 'Pre-test' : 'Post-test'} untuk modul ini belum dimuat dari database.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-cream-card border-2 border-teal-dark kinetix-shadow">
+    <div className="bg-cream-card border-3 border-teal-dark kinetix-shadow">
       {/* Top Header */}
       <div className="bg-teal text-white p-5 border-b-2 border-teal-deep flex flex-wrap items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono uppercase bg-pink text-charcoal-900 px-2 py-0.5 font-bold tracking-wider inline-block mb-1">
-            Evaluasi Mandiri (10 Soal Pilihan Ganda)
+          <span
+            className={`text-[10px] font-mono uppercase px-2 py-0.5 font-bold tracking-wider inline-block mb-1 border ${
+              isPreTest ? 'bg-pink text-charcoal-900 border-charcoal-900' : 'bg-cream text-charcoal-900 border-charcoal-900'
+            }`}
+          >
+            {isPreTest ? 'Asesmen Awal (Pre-test Diagnostik)' : 'Asesmen Akhir (Post-test HOTS)'}
           </span>
-          <h3 className="text-lg sm:text-xl font-bold uppercase tracking-wide">
+          <h3 className="text-lg font-mono font-bold leading-tight">
             {lessonTitle}
           </h3>
+          <p className="text-xs text-cream/90 font-mono mt-0.5">
+            {isPreTest
+              ? 'Tujuan: Mendiagnosis pemahaman awal & mendeteksi potensi miskonsepsi.'
+              : 'Tujuan: Mengukur pencapaian Higher-Order Thinking Skills (HOTS) & N-Gain.'}
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="font-mono text-xs text-cream/90 bg-teal-dark border border-teal-light px-3 py-1.5">
-            Terjawab: <strong>{answeredCount}</strong> / {total}
-          </div>
+        <div className="flex items-center gap-2 font-mono text-xs">
+          <span className="bg-teal-dark border border-teal-light px-3 py-1 font-bold">
+            Soal {currentIndex + 1} dari {total}
+          </span>
+          <span className="bg-cream text-charcoal-900 px-3 py-1 font-bold border border-charcoal-900">
+            Terjawab: {answeredCount}/{total}
+          </span>
         </div>
       </div>
 
       {/* Main Assessment Body */}
-      <div className="p-6 space-y-6">
-        {/* If Submitted: Show Score Overview Banner */}
-        {isSubmitted && scoreResult && (
-          <div className="bg-cream border-2 border-charcoal-900 p-5 kinetix-shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-charcoal-300 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-pink border-2 border-charcoal-900 flex items-center justify-center font-bold text-xl text-charcoal-900 shadow-brutal-dark">
-                  <Award className="w-7 h-7" />
-                </div>
-                <div>
-                  <div className="text-xs font-mono uppercase text-charcoal-600">Nilai Akhir Evaluasi</div>
-                  <div className="text-3xl font-mono font-extrabold text-teal-dark">
-                    {scoreResult.score} <span className="text-base text-charcoal-500 font-normal">/ 100</span>
-                  </div>
-                </div>
+      <div className="p-6 sm:p-8 space-y-6">
+        {/* Score & N-Gain Banner when submitted */}
+        {isSubmitted && scoreData && (
+          <div className="bg-cream border-2 border-teal-dark p-5 space-y-3 shadow-brutal-teal-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-teal/30 pb-3">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-teal" />
+                <span className="font-mono text-sm font-bold uppercase text-charcoal-900">
+                  Hasil {isPreTest ? 'Pre-Test' : 'Post-Test'} Anda:
+                </span>
               </div>
-
-              <div className="flex items-center gap-3 font-mono text-xs">
-                <div className="bg-teal/15 border border-teal p-2">
-                  Benar: <strong>{scoreResult.correctCount}</strong>
-                </div>
-                <div className="bg-pink/20 border border-pink p-2">
-                  Salah: <strong>{scoreResult.total - scoreResult.correctCount}</strong>
-                </div>
-                <button onClick={handleRetake} className="kinetix-btn-secondary text-xs py-2 px-3">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Ulangi Kuis
-                </button>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-xl sm:text-2xl font-extrabold text-teal-dark bg-white border border-teal px-3 py-1">
+                  Skor: {scoreData.score} / 100
+                </span>
+                {!isPreTest && scoreData.nGain !== undefined && (
+                  <span className="font-mono text-xs sm:text-sm font-bold bg-pink text-charcoal-900 border border-charcoal-900 px-3 py-1 flex items-center gap-1">
+                    <TrendingUp className="w-4 h-4" />
+                    N-Gain: {scoreData.nGain}
+                  </span>
+                )}
               </div>
             </div>
 
-            <p className="text-sm font-sans font-medium text-charcoal-800">
-              <strong>Catatan Evaluasi:</strong> {scoreResult.feedback}
+            <p className="text-xs font-mono text-charcoal-700 leading-relaxed">
+              {isPreTest ? (
+                <>
+                  ✅ <strong>Pre-test berhasil disimpan ke database.</strong> Tahapan{' '}
+                  <span className="text-teal-dark font-bold">Orientasi Masalah & Eksplorasi (PBL)</span> kini telah
+                  terbuka. Silakan amati pembahasan kunci di bawah untuk meluruskan konsepsi awal!
+                </>
+              ) : (
+                <>
+                  🎉 <strong>Post-test tuntas!</strong> Kunci jawaban dan pembahasan HOTS langsung ditampilkan di bawah.
+                  Silakan lanjutkan ke <strong>Jurnal Refleksi Metakognitif</strong> untuk menyelesaikan pertemuan ini.
+                </>
+              )}
             </p>
           </div>
         )}
 
-        {/* Question Selector Quick Bar */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-charcoal-300 pb-4">
-          {questions.map((q, idx) => {
-            const isAnswered = !!selectedAnswers[q.id];
-            const isCurrent = idx === currentIndex;
-            const isCorrectAnswer =
-              isSubmitted && selectedAnswers[q.id]?.toUpperCase() === q.correctAnswer.toUpperCase();
-
-            let btnStyle = 'bg-cream text-charcoal-800 border-charcoal-400';
-            if (isCurrent) {
-              btnStyle = 'bg-teal text-white border-teal-deep ring-2 ring-pink';
-            } else if (isSubmitted) {
-              btnStyle = isCorrectAnswer
-                ? 'bg-teal/20 text-teal-dark border-teal font-bold'
-                : 'bg-pink/20 text-pink-hover border-pink font-bold';
-            } else if (isAnswered) {
-              btnStyle = 'bg-cream-dark text-teal-dark border-teal font-bold';
-            }
-
-            return (
-              <button
-                key={q.id}
-                onClick={() => setCurrentIndex(idx)}
-                className={`w-8 h-8 font-mono text-xs font-bold border-2 transition-all flex items-center justify-center ${btnStyle}`}
-              >
-                {idx + 1}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Current Question Display */}
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <span className="font-mono text-xs font-bold text-teal-dark uppercase tracking-wider">
-              Pertanyaan #{currentIndex + 1} dari {total}
+        {/* Question Header & Category Badge */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs font-bold text-white bg-charcoal-900 px-2 py-0.5">
+              Nomor {currentIndex + 1}
             </span>
+            {currentQ.category && (
+              <span className="font-mono text-[10px] font-bold text-teal-dark bg-teal-soft border border-teal px-2 py-0.5 uppercase">
+                Kategori: {currentQ.category}
+              </span>
+            )}
+            {isSubmitted && (
+              <span
+                className={`font-mono text-[10px] font-bold px-2 py-0.5 border ${
+                  selectedAnswers[currentQ.id]?.trim().toUpperCase() === currentQ.correctAnswer.trim().toUpperCase()
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-600'
+                    : 'bg-rose-100 text-rose-800 border-rose-600'
+                }`}
+              >
+                {selectedAnswers[currentQ.id]?.trim().toUpperCase() === currentQ.correctAnswer.trim().toUpperCase()
+                  ? 'Benar (+)'
+                  : 'Kurang Tepat (-)'}
+              </span>
+            )}
           </div>
 
-          <h4 className="text-base sm:text-lg font-bold text-charcoal-900 leading-snug font-sans">
+          <h4 className="text-base sm:text-lg font-bold text-charcoal-900 font-sans leading-relaxed whitespace-pre-line">
             {currentQ.questionText}
           </h4>
+        </div>
 
-          {/* Options */}
-          <div className="space-y-2.5 pt-2">
-            {currentQ.options?.map((opt, oIdx) => {
-              const letter = opt.substring(0, 1).toUpperCase();
-              const isSelected = selectedAnswers[currentQ.id]?.toUpperCase() === letter;
-              const isCorrect = currentQ.correctAnswer.toUpperCase() === letter;
+        {/* Options List */}
+        <div className="space-y-3">
+          {currentQ.options && currentQ.options.length > 0 ? (
+            currentQ.options.map((opt, oIdx) => {
+              const optionLetter = opt.trim().substring(0, 1).toUpperCase();
+              const isSelected = selectedAnswers[currentQ.id]?.toUpperCase() === optionLetter;
+              const isCorrect = isSubmitted && optionLetter === currentQ.correctAnswer.trim().toUpperCase();
+              const isWrongSelected = isSubmitted && isSelected && !isCorrect;
 
-              let optionBoxStyle = 'bg-cream border-charcoal-400 hover:border-teal';
+              let optionStyle =
+                'bg-cream-card border-2 border-charcoal-900 text-charcoal-900 hover:bg-cream hover:border-teal';
               if (isSelected && !isSubmitted) {
-                optionBoxStyle = 'bg-teal/15 border-teal text-teal-deep font-bold shadow-brutal-teal-sm';
-              } else if (isSubmitted) {
-                if (isCorrect) {
-                  optionBoxStyle = 'bg-teal/20 border-teal text-teal-deep font-bold';
-                } else if (isSelected && !isCorrect) {
-                  optionBoxStyle = 'bg-pink/25 border-pink text-charcoal-900 font-bold';
-                }
+                optionStyle = 'bg-teal text-white border-2 border-teal-dark shadow-brutal-teal-sm';
+              } else if (isCorrect) {
+                optionStyle = 'bg-emerald-100 border-2 border-emerald-700 text-emerald-950 font-bold';
+              } else if (isWrongSelected) {
+                optionStyle = 'bg-rose-100 border-2 border-rose-600 text-rose-900 line-through';
               }
 
               return (
                 <button
                   key={oIdx}
                   type="button"
-                  onClick={() => handleSelectOption(currentQ.id, letter)}
                   disabled={isSubmitted}
-                  className={`w-full text-left p-3.5 border-2 transition-all flex items-center justify-between text-xs sm:text-sm font-sans ${optionBoxStyle}`}
+                  onClick={() => handleSelectOption(currentQ.id, optionLetter)}
+                  className={`w-full text-left p-3.5 sm:p-4 text-xs sm:text-sm font-sans transition-all flex items-start gap-3 ${optionStyle}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`w-6 h-6 border font-mono font-bold text-xs flex items-center justify-center ${
-                        isSelected
-                          ? 'bg-teal text-white border-teal-dark'
-                          : 'bg-cream-card text-charcoal-700 border-charcoal-400'
-                      }`}
-                    >
-                      {letter}
-                    </span>
-                    <span>{opt.substring(3)}</span>
-                  </div>
-
-                  {isSubmitted && isCorrect && (
-                    <span className="flex items-center gap-1 text-teal font-mono text-xs font-bold">
-                      <CheckCircle2 className="w-4 h-4" /> Kunci Jawaban
-                    </span>
-                  )}
-                  {isSubmitted && isSelected && !isCorrect && (
-                    <span className="flex items-center gap-1 text-pink-hover font-mono text-xs font-bold">
-                      <XCircle className="w-4 h-4" /> Jawaban Anda
-                    </span>
-                  )}
+                  <span
+                    className={`font-mono font-bold text-xs px-2 py-0.5 border shrink-0 ${
+                      isSelected && !isSubmitted
+                        ? 'bg-pink text-charcoal-900 border-charcoal-900'
+                        : isCorrect
+                        ? 'bg-emerald-600 text-white border-emerald-800'
+                        : 'bg-cream text-charcoal-900 border-charcoal-900'
+                    }`}
+                  >
+                    {optionLetter}
+                  </span>
+                  <span className="flex-1 leading-relaxed">{opt.replace(/^[A-D]\.\s*/, '')}</span>
+                  {isCorrect && <Check className="w-4 h-4 text-emerald-700 shrink-0 self-center" />}
+                  {isWrongSelected && <XCircle className="w-4 h-4 text-rose-600 shrink-0 self-center" />}
                 </button>
               );
-            })}
-          </div>
-
-          {/* Explanation if submitted */}
-          {isSubmitted && (
-            <div className="bg-cream border-l-4 border-teal p-4 space-y-1 text-xs font-mono text-charcoal-800">
-              <div className="font-bold text-teal-dark flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5" /> Pembahasan Ilmiah:
-              </div>
-              <p className="leading-relaxed font-sans">{currentQ.explanation}</p>
+            })
+          ) : (
+            <div className="space-y-2">
+              <label className="text-xs font-mono font-bold text-charcoal-800">Jawaban Esai / Analisis Siswa:</label>
+              <textarea
+                disabled={isSubmitted}
+                value={selectedAnswers[currentQ.id] || ''}
+                onChange={(e) => handleSelectOption(currentQ.id, e.target.value)}
+                placeholder="Tuliskan analisis ilmiah singkat Anda di sini..."
+                rows={3}
+                className="w-full bg-cream border-2 border-charcoal-900 p-3 text-xs font-sans focus:outline-none focus:border-teal"
+              />
             </div>
           )}
         </div>
 
-        {/* Bottom Pagination & Submit */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-charcoal-300">
-          <button
-            onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-            disabled={currentIndex === 0}
-            className="kinetix-btn-secondary text-xs disabled:opacity-40"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" /> Soal Sebelumnya
-          </button>
+        {/* Kunci Jawaban & Pembahasan Lengkap (Muncul langsung setelah submit sesuai PRD) */}
+        {isSubmitted && currentQ.explanation && (
+          <div className="bg-cream-card border-2 border-teal-dark p-4.5 space-y-2 border-l-4 border-l-teal">
+            <div className="flex items-center gap-1.5 text-teal-dark font-mono text-xs font-extrabold uppercase">
+              <HelpCircle className="w-4 h-4 text-teal" />
+              <span>Kunci Jawaban & Pembahasan Pedagogis:</span>
+            </div>
+            <p className="text-xs text-charcoal-800 font-sans leading-relaxed whitespace-pre-line">
+              <strong>Kunci: {currentQ.correctAnswer}</strong> — {currentQ.explanation}
+            </p>
+          </div>
+        )}
+
+        {/* Navigation & Submission Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t-2 border-teal/20">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={currentIndex === 0}
+              onClick={() => setCurrentIndex((p) => Math.max(0, p - 1))}
+              className="bg-cream border-2 border-charcoal-900 text-charcoal-900 px-3.5 py-2 text-xs font-mono font-bold hover:bg-cream-dark disabled:opacity-40 flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Sebelumnya
+            </button>
+
+            <button
+              type="button"
+              disabled={currentIndex === total - 1}
+              onClick={() => setCurrentIndex((p) => Math.min(total - 1, p + 1))}
+              className="bg-cream border-2 border-charcoal-900 text-charcoal-900 px-3.5 py-2 text-xs font-mono font-bold hover:bg-cream-dark disabled:opacity-40 flex items-center gap-1"
+            >
+              Selanjutnya <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
           <div className="flex items-center gap-2">
-            {currentIndex < total - 1 ? (
-              <button
-                onClick={() => setCurrentIndex(prev => Math.min(total - 1, prev + 1))}
-                className="kinetix-btn-secondary text-xs"
-              >
-                Soal Berikutnya <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            ) : null}
-
             {!isSubmitted ? (
               <button
+                type="button"
                 onClick={handleSubmit}
-                disabled={answeredCount < total}
-                className="kinetix-btn-primary text-xs disabled:opacity-50"
+                className="kinetix-btn-primary text-xs py-2 px-5 flex items-center gap-1.5 shadow-brutal-dark"
               >
                 <Send className="w-3.5 h-3.5" />
-                KIRIM JAWABAN ({answeredCount}/{total})
+                Kirim Jawaban {isPreTest ? 'Pre-Test' : 'Post-Test'}
               </button>
-            ) : null}
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-500 px-3 py-1 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Tersimpan di Database
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

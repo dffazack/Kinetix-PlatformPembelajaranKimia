@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ContentBlock } from '@/lib/types';
 import FillBlankBlock from './FillBlankBlock';
 import { FlaskConical, AlertCircle, Info, Lightbulb, Binary, ExternalLink, Play } from 'lucide-react';
+import { getYouTubeEmbedUrl } from '@/lib/utils';
 
 interface ContentBlockRendererProps {
   block: ContentBlock;
@@ -95,30 +96,43 @@ export default function ContentBlockRenderer({ block, lessonId }: ContentBlockRe
         </div>
       );
 
-    case 'video':
+    case 'video': {
+      const embedUrl = getYouTubeEmbedUrl(block.content);
       return (
         <div className="bg-cream-card border-2 border-teal-dark p-4 space-y-3 kinetix-shadow-sm">
           <div className="flex items-center justify-between border-b border-charcoal-300 pb-2">
             <span className="text-xs font-mono font-bold uppercase text-teal-deep flex items-center gap-1.5">
               <Play className="w-3.5 h-3.5 text-pink" />
-              Video Eksplorasi Pembelajaran
+              {block.metadata?.caption || 'Video Eksplorasi Pembelajaran'}
             </span>
-            <span className="text-[10px] font-mono text-charcoal-500">Eksternal Resource</span>
           </div>
-          <p className="text-xs text-charcoal-700">
-            Tonton demonstrasi visual kinetika reaksi berikut:
-          </p>
-          <a
-            href={block.content}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="kinetix-btn-secondary text-xs py-2 px-3 inline-flex items-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4 text-teal" />
-            Buka Video Pembelajaran (YouTube / Platform Sains)
-          </a>
+          {embedUrl ? (
+            <div className="aspect-video w-full border-2 border-charcoal-900 bg-black">
+              <iframe
+                src={embedUrl}
+                title={block.metadata?.caption || 'Video Pembelajaran Kinetix'}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-charcoal-700">Tonton demonstrasi visual kinetika reaksi berikut:</p>
+          )}
+          <div className="flex justify-end">
+            <a
+              href={block.content}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-mono font-bold text-teal-dark hover:text-pink inline-flex items-center gap-1"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-teal" />
+              Tonton di YouTube
+            </a>
+          </div>
         </div>
       );
+    }
 
     case 'fill_blank':
       return <FillBlankBlock block={block} />;

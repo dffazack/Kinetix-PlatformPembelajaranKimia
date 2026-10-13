@@ -4,10 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Atom, BookOpen, FlaskConical, BarChart3, UserCheck, Shield, LogOut, ArrowRightLeft, HelpCircle } from 'lucide-react';
+import { Atom, BookOpen, FlaskConical, BarChart3, Shield, LogIn, LogOut, HelpCircle } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, switchDemoRole, logout } = useAuth();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
 
   // Sembunyikan navbar khusus di halaman login
@@ -16,6 +16,7 @@ export default function Navbar() {
   }
 
   const isTeacher = user?.role === 'TEACHER';
+  const isStudent = user?.role === 'STUDENT';
 
   return (
     <header className="sticky top-0 z-50 bg-teal border-b-3 border-teal-deep text-cream kinetix-shadow">
@@ -74,7 +75,8 @@ export default function Navbar() {
               Panduan
             </Link>
 
-            {isTeacher ? (
+            {/* Menu Khusus jika sudah Login: Panel Guru atau Dashboard Siswa */}
+            {isTeacher && (
               <Link
                 href="/teacher/dashboard"
                 className={`px-3 py-2 border-2 transition-all flex items-center gap-1.5 ${
@@ -86,7 +88,9 @@ export default function Navbar() {
                 <Shield className="w-3.5 h-3.5 text-pink-hover" />
                 Panel Guru & Rekap
               </Link>
-            ) : (
+            )}
+
+            {isStudent && (
               <Link
                 href="/student/dashboard"
                 className={`px-3 py-2 border-2 transition-all flex items-center gap-1.5 ${
@@ -101,46 +105,39 @@ export default function Navbar() {
             )}
           </nav>
 
-          {/* User & Role Switcher */}
+          {/* Right Area: Hanya Tombol Login jika belum login; Tulisan Role & Tombol Logout jika sudah login */}
           <div className="flex items-center gap-3">
-            {/* Quick Role Switcher Button for Instant Testing */}
-            <button
-              onClick={() => switchDemoRole(isTeacher ? 'STUDENT' : 'TEACHER')}
-              title="Klik untuk beralih mode cepat antara Siswa & Guru"
-              className="bg-cream text-charcoal-900 border-2 border-charcoal-900 px-2.5 py-1 text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-brutal-pink-sm hover:bg-pink transition-colors"
-            >
-              <ArrowRightLeft className="w-3 h-3 text-teal-dark" />
-              <span className="hidden sm:inline">Role:</span>
-              <span className="uppercase text-teal-dark font-extrabold">
-                {isTeacher ? 'Guru 👩‍🏫' : 'Siswa 👨‍🎓'}
-              </span>
-            </button>
-
-            {/* Profile Dropdown / Actions */}
             {user ? (
               <div className="flex items-center gap-2">
-                <div className="hidden lg:flex flex-col text-right">
-                  <span className="text-xs font-bold text-cream font-mono truncate max-w-[130px]">
+                {/* Badge Role Siswa atau Guru */}
+                <div className="bg-cream text-charcoal-900 border-2 border-charcoal-900 px-3 py-1 font-mono text-xs font-bold flex items-center gap-1.5 shadow-brutal-pink-sm">
+                  <span className="text-[10px] text-teal-dark font-extrabold uppercase">
+                    Role: {isTeacher ? 'Guru 👩‍🏫' : 'Siswa 👨‍🎓'}
+                  </span>
+                  <span className="hidden sm:inline text-charcoal-400">|</span>
+                  <span className="hidden sm:inline font-extrabold truncate max-w-[120px]">
                     {user.name}
                   </span>
-                  <span className="text-[10px] text-pink font-mono tracking-tight">
-                    {user.role === 'TEACHER' ? 'Guru Pengampu' : 'Siswa Terdaftar'}
-                  </span>
                 </div>
+
+                {/* Tombol Logout */}
                 <button
                   onClick={logout}
-                  title="Logout"
-                  className="p-1.5 border border-teal-light bg-teal-dark text-cream hover:bg-pink hover:text-charcoal-900 transition-colors"
+                  title="Logout dari akun"
+                  className="bg-teal-dark hover:bg-pink hover:text-charcoal-900 text-cream border-2 border-charcoal-900 px-3 py-1 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors shadow-brutal-dark"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (
+              /* User belum login: HANYA tombol Login / Masuk */
               <Link
                 href="/login"
-                className="bg-pink text-charcoal-900 border-2 border-charcoal-900 px-3 py-1 text-xs font-mono font-bold uppercase shadow-brutal-dark hover:bg-cream"
+                className="bg-pink text-charcoal-900 border-2 border-charcoal-900 px-4 py-1.5 text-xs font-mono font-bold uppercase shadow-brutal-dark hover:bg-cream transition-colors flex items-center gap-1.5"
               >
-                Masuk
+                <LogIn className="w-4 h-4 text-charcoal-900" />
+                <span>Masuk (Login)</span>
               </Link>
             )}
           </div>

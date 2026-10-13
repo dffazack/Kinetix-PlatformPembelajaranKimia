@@ -21,15 +21,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize current user from localStorage or fallback to default student
+    // Initialize current user from localStorage if logged in
     const existing = StorageService.getCurrentUser();
     if (existing) {
       setUser(existing);
     } else {
-      // Default to student 1 for immediate preview
-      const defaultUser = SEED_USERS[1]; // Budi Pratama
-      setUser(defaultUser);
-      StorageService.setCurrentUser(defaultUser);
+      setUser(null);
     }
     setIsLoading(false);
   }, []);
