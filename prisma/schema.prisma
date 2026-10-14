@@ -88,6 +88,7 @@ model StudentResult {
   mcAnswers         String?  // Backward compatibility
   fillAnswers       String?  // Backward compatibility
   reflectionAnswers String?  // JSON map { promptIndex: studentAnswerText }
+  paragraphAnswers  String?  // JSON map { blockId: studentEssayText }
   stagesCompleted   String?  // JSON array e.g. ["PRE_TEST", "ORIENTATION", "SIMULATION", "POST_TEST", "REFLECTION"]
   feedback          String?
   completedAt       DateTime @default(now())

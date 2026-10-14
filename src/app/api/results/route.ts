@@ -41,6 +41,7 @@ export async function GET(request: Request) {
       preAnswers: r.preAnswers ? JSON.parse(r.preAnswers) : {},
       postAnswers: r.postAnswers ? JSON.parse(r.postAnswers) : {},
       reflectionAnswers: r.reflectionAnswers ? JSON.parse(r.reflectionAnswers) : {},
+      paragraphAnswers: r.paragraphAnswers ? JSON.parse(r.paragraphAnswers) : {},
       stagesCompleted: r.stagesCompleted ? JSON.parse(r.stagesCompleted) : [],
       feedback: r.feedback || undefined,
       completedAt: r.completedAt.toISOString(),
@@ -63,9 +64,11 @@ export async function POST(request: Request) {
     const {
       studentId,
       lessonId,
-      action, // 'SUBMIT_PRE_TEST' | 'COMPLETE_ORIENTATION' | 'COMPLETE_SIMULATION' | 'SUBMIT_POST_TEST' | 'SUBMIT_REFLECTION'
+      action, // 'SUBMIT_PRE_TEST' | 'COMPLETE_ORIENTATION' | 'COMPLETE_SIMULATION' | 'SUBMIT_POST_TEST' | 'SUBMIT_REFLECTION' | 'SUBMIT_PARAGRAPH_ANSWER'
       answers,
       reflectionAnswers,
+      blockId,
+      answerText,
     } = body;
 
     if (!studentId || !lessonId) {
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
     let preAnswersMap = existing?.preAnswers ? JSON.parse(existing.preAnswers) : {};
     let postAnswersMap = existing?.postAnswers ? JSON.parse(existing.postAnswers) : {};
     let reflectionMap = existing?.reflectionAnswers ? JSON.parse(existing.reflectionAnswers) : {};
+    let paragraphMap = existing?.paragraphAnswers ? JSON.parse(existing.paragraphAnswers) : {};
     let stages: LearningStage[] = existing?.stagesCompleted ? JSON.parse(existing.stagesCompleted) : [];
 
     const addStage = (stage: LearningStage) => {
@@ -149,6 +153,10 @@ export async function POST(request: Request) {
     } else if (action === 'SUBMIT_REFLECTION') {
       reflectionMap = reflectionAnswers || {};
       addStage('REFLECTION');
+    } else if (action === 'SUBMIT_PARAGRAPH_ANSWER') {
+      if (blockId) {
+        paragraphMap = { ...paragraphMap, [blockId]: answerText || '' };
+      }
     }
 
     // Feedback based on postScore or preScore
@@ -173,6 +181,7 @@ export async function POST(request: Request) {
         reflectionAnswers: JSON.stringify(reflectionMap),
         stagesCompleted: JSON.stringify(stages),
         feedback,
+        ...(Object.keys(paragraphMap).length > 0 ? { paragraphAnswers: JSON.stringify(paragraphMap) } : {}),
       },
       create: {
         id: `res-${Date.now()}`,
@@ -187,6 +196,7 @@ export async function POST(request: Request) {
         reflectionAnswers: JSON.stringify(reflectionMap),
         stagesCompleted: JSON.stringify(stages),
         feedback,
+        ...(Object.keys(paragraphMap).length > 0 ? { paragraphAnswers: JSON.stringify(paragraphMap) } : {}),
       },
     });
 
@@ -199,6 +209,7 @@ export async function POST(request: Request) {
         preAnswers: preAnswersMap,
         postAnswers: postAnswersMap,
         reflectionAnswers: reflectionMap,
+        paragraphAnswers: paragraphMap,
         stagesCompleted: stages,
       },
     });

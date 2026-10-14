@@ -4,12 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import { ContentBlock } from '@/lib/types';
 import FillBlankBlock from './FillBlankBlock';
+import ParagraphEssayBlock from './ParagraphEssayBlock';
 import { FlaskConical, AlertCircle, Info, Lightbulb, Binary, ExternalLink, Play } from 'lucide-react';
 import { getYouTubeEmbedUrl } from '@/lib/utils';
 
 interface ContentBlockRendererProps {
   block: ContentBlock;
-  lessonId?: string;
+  lessonId: string;
 }
 
 export default function ContentBlockRenderer({ block, lessonId }: ContentBlockRendererProps) {
@@ -136,6 +137,9 @@ export default function ContentBlockRenderer({ block, lessonId }: ContentBlockRe
 
     case 'fill_blank':
       return <FillBlankBlock block={block} />;
+
+    case 'paragraph_essay':
+      return <ParagraphEssayBlock block={block} lessonId={lessonId} />;
 
     case 'experiment_cta': {
       const expType = block.metadata?.experimentType || 'FACTORS_REACTION';

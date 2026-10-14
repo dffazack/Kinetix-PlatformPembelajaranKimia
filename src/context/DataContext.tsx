@@ -35,6 +35,15 @@ interface DataContextType {
     lessonId: string,
     reflectionAnswers: Record<number, string>
   ) => Promise<void>;
+  submitParagraphAnswer: (
+    studentId: string,
+    studentName: string,
+    studentEmail: string,
+    lessonId: string,
+    blockId: string,
+    answerText: string
+  ) => Promise<void>;
+  getParagraphAnswer: (studentId: string, lessonId: string, blockId: string) => string;
   // Teacher KB management:
   updateLesson: (lesson: Lesson) => Promise<void>;
   addContentBlock: (lessonId: string, block: ContentBlock) => Promise<void>;
@@ -378,6 +387,69 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const submitParagraphAnswer = async (
+    studentId: string,
+    studentName: string,
+    studentEmail: string,
+    lessonId: string,
+    blockId: string,
+    answerText: string
+  ) => {
+    try {
+      await fetch('/api/results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SUBMIT_PARAGRAPH_ANSWER',
+          studentId,
+          studentName,
+          studentEmail,
+          lessonId,
+          blockId,
+          answerText,
+        }),
+      });
+    } catch (e) {
+      console.warn('Saving paragraph answer to server failed:', e);
+    }
+
+    setResults((prev) => {
+      const idx = prev.findIndex((r) => r.studentId === studentId && r.lessonId === lessonId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = {
+          ...copy[idx],
+          paragraphAnswers: {
+            ...(copy[idx].paragraphAnswers || {}),
+            [blockId]: answerText,
+          },
+        };
+        return copy;
+      }
+      // Create a stub result entry if none exists
+      const stub = {
+        id: `res-para-${Date.now()}`,
+        studentId,
+        studentName,
+        studentEmail,
+        lessonId,
+        preTestScore: 0,
+        postTestScore: 0,
+        nGain: 0,
+        score: 0,
+        stagesCompleted: [] as LearningStage[],
+        paragraphAnswers: { [blockId]: answerText },
+        completedAt: new Date().toISOString(),
+      };
+      return [stub, ...prev];
+    });
+  };
+
+  const getParagraphAnswer = (studentId: string, lessonId: string, blockId: string): string => {
+    const result = results.find((r) => r.studentId === studentId && r.lessonId === lessonId);
+    return result?.paragraphAnswers?.[blockId] || '';
+  };
+
   // Teacher CRUD methods
   const updateLesson = async (updatedLesson: Lesson) => {
     try {
@@ -455,6 +527,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         completeSimulation,
         submitPostTest,
         submitReflection,
+        submitParagraphAnswer,
+        getParagraphAnswer,
         updateLesson,
         addContentBlock,
         updateContentBlock,

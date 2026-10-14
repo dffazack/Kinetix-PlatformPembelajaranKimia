@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { StudentResult } from '@/lib/types';
-import { Download, Search, Filter, Eye, Award, CheckCircle2, XCircle, FileSpreadsheet, X, TrendingUp, Brain } from 'lucide-react';
+import { Download, Search, Filter, Eye, Award, CheckCircle2, XCircle, FileSpreadsheet, X, TrendingUp, Brain, PenLine, MessageSquare } from 'lucide-react';
 
 export default function GradeRecapTable() {
   const { results, lessons } = useData();
@@ -156,6 +156,7 @@ export default function GradeRecapTable() {
               <th className="p-3 text-center">Post-Test</th>
               <th className="p-3 text-center">N-Gain</th>
               <th className="p-3 text-center">Jurnal Refleksi</th>
+              <th className="p-3 text-center">Essay</th>
               <th className="p-3">Waktu Selesai</th>
               <th className="p-3 text-center">Detail</th>
             </tr>
@@ -163,7 +164,7 @@ export default function GradeRecapTable() {
           <tbody className="divide-y divide-charcoal-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-charcoal-500 font-mono text-xs">
+                <td colSpan={9} className="p-8 text-center text-charcoal-500 font-mono text-xs">
                   Belum ada data evaluasi yang sesuai dengan filter atau pencarian.
                 </td>
               </tr>
@@ -173,6 +174,7 @@ export default function GradeRecapTable() {
                 const post = item.postTestScore ?? item.score;
                 const pre = item.preTestScore ?? 0;
                 const hasReflect = item.reflectionAnswers && Object.keys(item.reflectionAnswers).length > 0;
+                const hasEssay = item.paragraphAnswers && Object.keys(item.paragraphAnswers).length > 0;
 
                 return (
                   <tr key={item.id} className="hover:bg-cream/60 transition-colors">
@@ -213,6 +215,16 @@ export default function GradeRecapTable() {
                       {hasReflect ? (
                         <span className="text-emerald-700 font-bold bg-emerald-50 border border-emerald-500 px-2 py-0.5 inline-flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Ada
+                        </span>
+                      ) : (
+                        <span className="text-charcoal-400">Belum</span>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-center font-mono text-xs">
+                      {hasEssay ? (
+                        <span className="text-pink-hover font-bold bg-pink/20 border border-pink px-2 py-0.5 inline-flex items-center gap-1">
+                          <PenLine className="w-3 h-3" /> Ada
                         </span>
                       ) : (
                         <span className="text-charcoal-400">Belum</span>
@@ -283,6 +295,41 @@ export default function GradeRecapTable() {
                 <span className="text-charcoal-800 block text-[10px]">N-GAIN SCORE</span>
                 <span className="text-xl font-bold">{viewingResult.nGain}</span>
               </div>
+            </div>
+
+            {/* Paragraph Essay Answers */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-charcoal-900 border-b border-charcoal-300 pb-1">
+                <PenLine className="w-4 h-4 text-pink-hover" />
+                <span>Jawaban Soal Essay Terbuka Siswa:</span>
+              </div>
+
+              {viewingResult.paragraphAnswers && Object.keys(viewingResult.paragraphAnswers).length > 0 ? (() => {
+                const lessonForModal = lessons.find((l) => l.id === viewingResult.lessonId);
+                return (
+                  <div className="space-y-2.5">
+                    {Object.entries(viewingResult.paragraphAnswers).map(([bId, ans], i) => {
+                      const block = lessonForModal?.contentBlocks.find((b) => b.id === bId);
+                      return (
+                        <div key={bId} className="bg-cream border border-pink/60 p-3 text-xs space-y-2">
+                          {block && (
+                            <span className="font-mono font-bold text-charcoal-900 block">
+                              Soal Essay {i + 1}: {block.content}
+                            </span>
+                          )}
+                          <p className="font-sans text-charcoal-800 italic leading-relaxed border-l-2 border-pink-hover pl-2">
+                            &quot;{ans}&quot;
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })() : (
+                <p className="text-xs font-mono text-charcoal-500 italic">
+                  Siswa belum mengirimkan jawaban soal essay paragraf untuk modul ini.
+                </p>
+              )}
             </div>
 
             {/* Metacognitive Reflection Responses */}

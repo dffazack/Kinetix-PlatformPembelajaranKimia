@@ -233,6 +233,13 @@ export default function DynamicContentEditor({ lesson }: DynamicContentEditorPro
               </div>
             )}
 
+            {block.type === 'paragraph_essay' && (
+              <div className="bg-pink/20 border border-pink p-2 text-xs font-mono flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5 text-pink-hover shrink-0" />
+                <span className="text-charcoal-800">Soal isian paragraf (essay terbuka) — jawaban siswa akan tampil di rekap guru. Tidak ada kunci jawaban.</span>
+              </div>
+            )}
+
             {block.type === 'experiment_cta' && (
               <div className="bg-teal/10 border border-teal p-2 text-xs font-mono flex items-center justify-between">
                 <span>Tombol mengarah ke: <strong>{block.metadata?.experimentType || 'FACTORS_REACTION'}</strong></span>
@@ -264,6 +271,7 @@ export default function DynamicContentEditor({ lesson }: DynamicContentEditorPro
                 <option value="callout">Kotak Kaidah / Callout</option>
                 <option value="equation">Persamaan Kimia / Rumus</option>
                 <option value="fill_blank">Soal Isian Mandiri (Fill-in-the-Blank)</option>
+                <option value="paragraph_essay">Soal Isian Paragraf (Essay Terbuka)</option>
                 <option value="video">Tautan Video Pembelajaran</option>
                 <option value="experiment_cta">Tombol Akses Halaman Eksperimen</option>
               </select>
@@ -272,7 +280,7 @@ export default function DynamicContentEditor({ lesson }: DynamicContentEditorPro
             {/* Content Input */}
             <div>
               <label className="block text-xs font-mono font-bold mb-1">
-                Isi Konten {newType === 'fill_blank' ? '(Gunakan [blank] untuk tempat isian)' : ''}:
+                Isi Konten {newType === 'fill_blank' ? '(Gunakan [blank] untuk tempat isian)' : newType === 'paragraph_essay' ? '(Pertanyaan / Instruksi Soal Essay)' : ''}:
               </label>
               <textarea
                 value={newContent}
@@ -281,6 +289,8 @@ export default function DynamicContentEditor({ lesson }: DynamicContentEditorPro
                 placeholder={
                   newType === 'fill_blank'
                     ? 'Contoh: Katalis berfungsi menurunkan nilai [blank] pada reaksi kimia.'
+                    : newType === 'paragraph_essay'
+                    ? 'Contoh: Jelaskan hubungan antara konsentrasi reaktan dan laju reaksi berdasarkan hasil eksperimen yang telah kamu lakukan!'
                     : 'Tuliskan materi pembelajaran...'
                 }
                 className="w-full bg-cream-card border-2 border-charcoal-400 p-2 text-xs font-mono focus:outline-none focus:border-teal"

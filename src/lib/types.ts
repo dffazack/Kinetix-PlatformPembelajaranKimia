@@ -17,7 +17,8 @@ export type ContentBlockType =
   | 'image' 
   | 'video' 
   | 'fill_blank' 
-  | 'experiment_cta';
+  | 'experiment_cta'
+  | 'paragraph_essay';
 
 export interface ContentBlock {
   id: string;
@@ -95,6 +96,7 @@ export interface StudentResult {
   mcAnswers?: Record<string, string>;
   fillAnswers?: Record<string, string>;
   reflectionAnswers?: Record<number, string>; // promptIndex -> studentText
+  paragraphAnswers?: Record<string, string>; // blockId -> studentEssayText
   stagesCompleted?: LearningStage[];
   feedback?: string;
   completedAt: string;
