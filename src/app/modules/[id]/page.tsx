@@ -157,10 +157,38 @@ export default function LessonDetailPage() {
           {lesson.description}
         </p>
 
+        {/* Chemical Kinetics Quick Reference Accent */}
+        <div className="bg-charcoal-900 border-2 border-teal p-3.5 text-cream font-mono text-xs space-y-1.5">
+          <div className="flex items-center justify-between text-teal-light font-bold text-[11px] border-b border-charcoal-700 pb-1">
+            <span className="flex items-center gap-1.5 uppercase">
+              <span className="w-2 h-2 bg-pink inline-block" />
+              Formula & Kaidah Kinetika Kunci KB {lesson.orderNumber}
+            </span>
+            <span className="text-pink text-[10px]">Triplet Simbolik</span>
+          </div>
+          <div className="text-xs text-cream/90 font-mono pt-1">
+            {lesson.orderNumber === 1 && (
+              <span>v = -Δ[Reaktan]/Δt = +Δ[Produk]/Δt • Satuan: M·s⁻¹ • Molaritas: M = n/V</span>
+            )}
+            {lesson.orderNumber === 2 && (
+              <span>Z_eff = Z · p · e^(-Ea/RT) • Luas Permukaan ↑ → Bidang Tumbukan Partikel ↑ → v ↑</span>
+            )}
+            {lesson.orderNumber === 3 && (
+              <span>v₂ = v₁ · 2^((T₂ - T₁)/10) • Suhu ↑ → Energi Kinetik Rata-rata Partikel ↑ → Tumbukan Efektif ↑</span>
+            )}
+            {lesson.orderNumber === 4 && (
+              <span>Ea (dengan Katalis) &lt; Ea (tanpa Katalis) • Katalis menurunkan hambatan energi aktivasi (ΔH tetap)</span>
+            )}
+            {lesson.orderNumber === 5 && (
+              <span>v = k·[A]ᵐ·[B]ⁿ • Orde Total = m + n • Sintesis Industri Amonia: N₂ + 3H₂ ⇌ 2NH₃ (Katalis Fe, 450°C)</span>
+            )}
+          </div>
+        </div>
+
         {/* Learning Objectives Box */}
         <div className="bg-cream p-4 border border-teal-dark/30 space-y-2">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-teal-dark flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-teal" /> Tujuan Pembelajaran (Deep Learning Level):
+            <Sparkles className="w-3.5 h-3.5 text-teal" /> Target Capaian Pembelajaran (Deep Learning):
           </span>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-sans text-charcoal-800">
             {lesson.objectives.map((obj, i) => (
@@ -176,7 +204,7 @@ export default function LessonDetailPage() {
       {/* SEQUENCING & LOCKING STEPPER NAV */}
       <div className="bg-cream-card border-3 border-teal-dark p-3 kinetix-shadow">
         <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-charcoal-600 mb-2 px-1">
-          Alur Belajar Berbasis Masalah (Sintaks PBL & Sequencing):
+          Alur Belajar Berbasis Masalah (Sintaks Problem-Based Learning):
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs">
           {/* Step 1: Pre-test */}
@@ -185,7 +213,7 @@ export default function LessonDetailPage() {
             onClick={() => setActiveStep('pre_test')}
             className={`p-2.5 border-2 text-left transition-all flex flex-col justify-between ${
               activeStep === 'pre_test'
-                ? 'bg-teal text-white border-teal-dark shadow-brutal-teal-sm'
+                ? 'bg-teal text-white border-charcoal-900 shadow-brutal-pink-sm'
                 : 'bg-cream text-charcoal-900 border-charcoal-900 hover:bg-cream-dark'
             }`}
           >
@@ -194,7 +222,7 @@ export default function LessonDetailPage() {
               {stages.includes('PRE_TEST') ? (
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               ) : (
-                <span className="w-2 h-2 rounded-full bg-pink"></span>
+                <span className="w-2 h-2 bg-pink inline-block border border-charcoal-900"></span>
               )}
             </div>
             <span className="font-bold text-[11px] mt-1">Pre-Test (10 Menit)</span>
@@ -209,7 +237,7 @@ export default function LessonDetailPage() {
               !orientationUnlocked
                 ? 'bg-cream-dark/50 text-charcoal-400 border-charcoal-300 cursor-not-allowed'
                 : activeStep === 'orientation'
-                ? 'bg-teal text-white border-teal-dark shadow-brutal-teal-sm'
+                ? 'bg-teal text-white border-charcoal-900 shadow-brutal-pink-sm'
                 : 'bg-cream text-charcoal-900 border-charcoal-900 hover:bg-cream-dark'
             }`}
           >
@@ -233,7 +261,7 @@ export default function LessonDetailPage() {
               !simulationUnlocked
                 ? 'bg-cream-dark/50 text-charcoal-400 border-charcoal-300 cursor-not-allowed'
                 : activeStep === 'simulation'
-                ? 'bg-teal text-white border-teal-dark shadow-brutal-teal-sm'
+                ? 'bg-teal text-white border-charcoal-900 shadow-brutal-pink-sm'
                 : 'bg-cream text-charcoal-900 border-charcoal-900 hover:bg-cream-dark'
             }`}
           >
@@ -259,7 +287,7 @@ export default function LessonDetailPage() {
               !postTestUnlocked
                 ? 'bg-cream-dark/50 text-charcoal-400 border-charcoal-300 cursor-not-allowed'
                 : activeStep === 'post_test'
-                ? 'bg-teal text-white border-teal-dark shadow-brutal-teal-sm'
+                ? 'bg-teal text-white border-charcoal-900 shadow-brutal-pink-sm'
                 : 'bg-cream text-charcoal-900 border-charcoal-900 hover:bg-cream-dark'
             }`}
           >
@@ -285,7 +313,7 @@ export default function LessonDetailPage() {
               !reflectionUnlocked
                 ? 'bg-cream-dark/50 text-charcoal-400 border-charcoal-300 cursor-not-allowed'
                 : activeStep === 'reflection'
-                ? 'bg-teal text-white border-teal-dark shadow-brutal-teal-sm'
+                ? 'bg-teal text-white border-charcoal-900 shadow-brutal-pink-sm'
                 : 'bg-cream text-charcoal-900 border-charcoal-900 hover:bg-cream-dark'
             }`}
           >

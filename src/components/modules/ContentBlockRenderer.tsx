@@ -38,28 +38,32 @@ export default function ContentBlockRenderer({ block, lessonId }: ContentBlockRe
       let borderColor = 'border-teal';
       let bgColor = 'bg-teal/10';
       let Icon = Info;
+      let label = 'Kaidah Penting Kinetika Kimia';
 
       if (variant === 'warning') {
         borderColor = 'border-pink';
         bgColor = 'bg-pink/15';
         Icon = AlertCircle;
+        label = 'Perhatian & Keselamatan Konsep';
       } else if (variant === 'tip') {
         borderColor = 'border-teal-dark';
         bgColor = 'bg-cream-card';
         Icon = Lightbulb;
+        label = 'Tips & Analogi Submikroskopik';
       } else if (variant === 'formula') {
         borderColor = 'border-charcoal-900';
         bgColor = 'bg-cream-card';
         Icon = Binary;
+        label = 'Representasi Simbolik & Matematika Laju';
       }
 
       return (
-        <div className={`border-2 ${borderColor} ${bgColor} p-4 sm:p-5 kinetix-shadow-sm space-y-2`}>
-          <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase text-teal-deep">
+        <div className={`border-3 ${borderColor} ${bgColor} p-4 sm:p-5 kinetix-shadow-sm space-y-2`}>
+          <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase text-teal-deep border-b border-charcoal-300 pb-1.5">
             <Icon className="w-4 h-4 text-teal" />
-            <span>Kaidah Penting Kinetika Kimia</span>
+            <span>{label}</span>
           </div>
-          <div className="text-sm font-medium text-charcoal-900 leading-relaxed">
+          <div className="text-sm font-medium text-charcoal-900 leading-relaxed font-sans">
             {block.content}
           </div>
         </div>
@@ -68,34 +72,49 @@ export default function ContentBlockRenderer({ block, lessonId }: ContentBlockRe
 
     case 'equation':
       return (
-        <div className="bg-cream-card border-2 border-charcoal-900 p-4 font-mono text-center kinetix-shadow-sm space-y-1">
-          <div className="text-base sm:text-lg font-bold text-teal-deep tracking-wider">
+        <div className="bg-charcoal-900 border-3 border-teal text-cream p-5 font-mono text-center kinetix-shadow-dark space-y-2 relative overflow-hidden">
+          <div className="absolute top-2 left-2 text-[10px] text-teal-light font-bold uppercase tracking-wider flex items-center gap-1">
+            <span className="w-2 h-2 bg-pink inline-block" />
+            Persamaan Kinetika Kimia
+          </div>
+          <div className="pt-3 text-lg sm:text-xl font-extrabold text-cream tracking-wider font-mono">
             {block.content}
           </div>
           {block.metadata?.caption && (
-            <div className="text-[11px] text-charcoal-500 font-sans italic">
+            <div className="text-xs text-charcoal-300 font-sans italic border-t border-charcoal-700 pt-2 mt-2">
               {block.metadata.caption}
             </div>
           )}
         </div>
       );
 
-    case 'image':
+    case 'image': {
+      const isUrl = block.content.startsWith('http') || block.content.startsWith('/');
       return (
-        <div className="bg-cream-card border-2 border-teal-dark p-3 space-y-2">
-          <div className="relative w-full aspect-video bg-cream-dark flex items-center justify-center border border-charcoal-400">
-            {/* If content is an actual image URL or SVG graphic */}
-            <span className="font-mono text-xs text-charcoal-600">
-              [Ilustrasi Diagram Kinetika Kimia]
-            </span>
-          </div>
+        <div className="bg-cream-card border-3 border-teal-dark p-3 space-y-2 kinetix-shadow-sm">
+          {isUrl ? (
+            <div className="relative w-full overflow-hidden border-2 border-charcoal-900 bg-black flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={block.content}
+                alt={block.metadata?.caption || 'Ilustrasi Kinetika Kimia'}
+                className="w-full h-auto object-contain max-h-[420px]"
+              />
+            </div>
+          ) : (
+            <div className="relative w-full aspect-video bg-charcoal-900 flex flex-col items-center justify-center border-2 border-teal p-4 text-center font-mono text-xs text-teal-light space-y-2">
+              <span className="text-pink text-base">⚛ [Diagram Kinetika Kimia]</span>
+              <span className="text-cream text-xs">{block.content}</span>
+            </div>
+          )}
           {block.metadata?.caption && (
-            <p className="text-xs font-mono text-center text-charcoal-600">
+            <p className="text-xs font-mono font-bold text-center text-charcoal-700 border-t border-charcoal-300 pt-1.5">
               {block.metadata.caption}
             </p>
           )}
         </div>
       );
+    }
 
     case 'video': {
       const embedUrl = getYouTubeEmbedUrl(block.content);

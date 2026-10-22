@@ -134,6 +134,37 @@ export default function EvaluationQuiz({ lessonId, lessonTitle, testType, onSucc
         </div>
       </div>
 
+      {/* Interactive Question Grid Palette (Learning Platform Standard) */}
+      <div className="bg-cream-dark/50 border-b-2 border-teal-dark p-3.5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+        <span className="font-bold text-charcoal-700 uppercase flex items-center gap-1.5">
+          <span className="w-2 h-2 bg-pink inline-block border border-charcoal-900" />
+          Nomor Soal:
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {questions.map((q, idx) => {
+            const isAnswered = !!selectedAnswers[q.id];
+            const isActive = idx === currentIndex;
+            return (
+              <button
+                key={q.id}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                className={`w-7 h-7 font-bold border flex items-center justify-center transition-all ${
+                  isActive
+                    ? 'bg-pink text-charcoal-900 border-charcoal-900 shadow-brutal-teal-sm font-extrabold'
+                    : isAnswered
+                    ? 'bg-teal text-white border-teal-deep'
+                    : 'bg-cream text-charcoal-700 border-charcoal-400 hover:border-charcoal-900'
+                }`}
+                title={`Lompat ke Soal ${idx + 1}`}
+              >
+                {idx + 1}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Main Assessment Body */}
       <div className="p-6 sm:p-8 space-y-6">
         {/* Score & N-Gain Banner when submitted */}

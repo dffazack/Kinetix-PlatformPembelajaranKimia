@@ -162,3 +162,97 @@
   background-image: radial-gradient(rgba(0, 128, 128, 0.18) 1.5px, transparent 1.5px);
   background-size: 20px 20px;
 }
+
+/* Chemical Kinetics Accents & Themes */
+.bg-kinetics-radar {
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(0, 128, 128, 0.06) 0%, transparent 65%),
+    linear-gradient(to right, rgba(0, 128, 128, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 128, 128, 0.06) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+}
+
+/* Formula badge */
+.kinetix-formula-tag {
+  font-family: var(--font-jetbrains-mono, monospace);
+  background: #FAF9EE;
+  border: 1.5px solid #005959;
+  color: #003D3D;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 2px 2px 0px #005959;
+}
+
+/* Reaction arrow */
+.reaction-arrow {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 900;
+  color: #005959;
+  padding: 0 0.25rem;
+}
+
+/* Pulse animation for active kinetic collisions */
+@keyframes kinetic-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+.animate-kinetic-pulse {
+  animation: kinetic-pulse 2.2s infinite ease-in-out;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 16s linear infinite;
+}
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(4deg);
+  }
+}
+
+.animate-float-particle {
+  animation: float-particle 4s ease-in-out infinite;
+}
+
+/* Marquee equation ticker */
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 32s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
